@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ELITES — Event Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+<div class="toast-stack" id="toastStack"></div>
+
+<div class="app">
+
+  <!-- ===== Side Rail Nav ===== -->
+  <aside class="rail">
+    <div class="rail-brand">
+      <div class="brand-mark">E</div>
+      <div class="brand-text">
+        <span class="brand-name">ELITES</span>
+        <span class="brand-sub">ORGANISATION</span>
+      </div>
+    </div>
+
+    <nav class="rail-nav">
+      <button class="nav-btn active" data-view="overview">
+        <span class="nav-ico">◈</span><span>Overview</span>
+      </button>
+      <button class="nav-btn" data-view="events">
+        <span class="nav-ico">▤</span><span>Events</span>
+      </button>
+      <button class="nav-btn" data-view="book">
+        <span class="nav-ico">✦</span><span>Book a Ticket</span>
+      </button>
+      <button class="nav-btn" data-view="tickets">
+        <span class="nav-ico">⌗</span><span>My Tickets</span>
+      </button>
+      <button class="nav-btn" data-view="checkin">
+        <span class="nav-ico">◫</span><span>QR Check-in</span>
+      </button>
+      <button class="nav-btn" data-view="analytics">
+        <span class="nav-ico">▲</span><span>Analytics</span>
+      </button>
+    </nav>
+
+    <div class="rail-foot">
+      <span class="ticket-code" id="sessionCode">SESSION · —</span>
+    </div>
+  </aside>
+
+  <!-- ===== Main Stage ===== -->
+  <main class="stage">
+
+    <!-- OVERVIEW -->
+    <section class="view active" id="view-overview">
+      <header class="hero">
+        <div class="hero-stub">
+          <div class="stub-main">
+            <span class="eyebrow">Backstage Pass · All Access</span>
+            <h1 class="hero-title">ELITES<br/>ORGANISATION</h1>
+            <p class="hero-copy">One platform to create events, sell tickets, scan attendees in at the door, and watch the numbers roll in — live.</p>
+            <div class="hero-actions">
+              <button class="btn btn-gold" data-goto="events">Create an Event</button>
+              <button class="btn btn-ghost" data-goto="book">Book a Ticket</button>
+            </div>
+          </div>
+          <div class="stub-tear"></div>
+          <div class="stub-side">
+            <span class="stub-label">ADMIT</span>
+            <span class="stub-big">ONE</span>
+            <span class="stub-code" id="heroCode">EL-0000</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="countdown-strip" id="countdownStrip">
+        <span class="countdown-label">Next Up</span>
+        <span class="countdown-name" id="countdownName">—</span>
+        <div class="countdown-clock" id="countdownClock">
+          <div class="clock-unit"><span id="cd-days">00</span><small>days</small></div>
+          <div class="clock-unit"><span id="cd-hours">00</span><small>hrs</small></div>
+          <div class="clock-unit"><span id="cd-mins">00</span><small>min</small></div>
+          <div class="clock-unit"><span id="cd-secs">00</span><small>sec</small></div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-label">Live Events</span>
+          <span class="stat-value" id="statEvents">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Tickets Sold</span>
+          <span class="stat-value" id="statTickets">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Revenue</span>
+          <span class="stat-value" id="statRevenue">₹0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Checked In</span>
+          <span class="stat-value" id="statCheckins">0</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Upcoming on the Roster</h2>
+          <span class="panel-note">Latest events created</span>
+        </div>
+        <div class="event-grid" id="overviewEventGrid"></div>
+      </div>
+    </section>
+
+    <!-- EVENTS / CREATE -->
+    <section class="view" id="view-events">
+      <div class="view-head">
+        <h1>Events</h1>
+        <p>Create a new event and manage everything already on the roster.</p>
+      </div>
+
+      <div class="split">
+        <form class="panel form-panel" id="eventForm">
+          <div class="panel-head"><h2>Create Event</h2></div>
+
+          <label class="field">
+            <span>Event name</span>
+            <input type="text" id="f-name" placeholder="e.g. Elite Summit 2026" required />
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span>Date</span>
+              <input type="date" id="f-date" required />
+            </label>
+            <label class="field">
+              <span>Start time</span>
+              <input type="time" id="f-time" required />
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Duration</span>
+            <select id="f-duration">
+              <option value="3">3 hours</option>
+              <option value="4">4 hours</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Venue</span>
+            <input type="text" id="f-venue" placeholder="e.g. Elite Grand Hall, Chennai" required />
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span>Category</span>
+              <select id="f-category">
+                <option>Summit</option>
+                <option>Concert</option>
+                <option>Hackathon</option>
+                <option>Networking</option>
+                <option>Gala</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Ticket price (₹)</span>
+              <input type="number" id="f-price" min="0" value="499" required />
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Total seats</span>
+            <input type="number" id="f-seats" min="1" value="100" required />
+          </label>
+
+          <label class="field">
+            <span>Description</span>
+            <textarea id="f-desc" rows="3" placeholder="What's this event about?"></textarea>
+          </label>
+
+          <button class="btn btn-gold" type="submit">Publish Event</button>
+        </form>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>All Events</h2>
+            <span class="panel-note" id="eventCountNote">0 events</span>
+          </div>
+          <div class="toolbar">
+            <input type="text" id="eventsSearch" placeholder="Search events…" class="toolbar-search" />
+            <select id="eventsCategoryFilter">
+              <option value="">All categories</option>
+              <option>Summit</option>
+              <option>Concert</option>
+              <option>Hackathon</option>
+              <option>Networking</option>
+              <option>Gala</option>
+            </select>
+            <select id="eventsSort">
+              <option value="date">Sort: Date</option>
+              <option value="price-asc">Sort: Price ↑</option>
+              <option value="price-desc">Sort: Price ↓</option>
+              <option value="popularity">Sort: Most Popular</option>
+            </select>
+          </div>
+          <div class="event-grid" id="eventsGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOOK TICKET -->
+    <section class="view" id="view-book">
+      <div class="view-head">
+        <h1>Book a Ticket</h1>
+        <p>Pick an event, enter attendee details, and check out.</p>
+      </div>
+
+      <div class="split">
+        <div class="panel">
+          <div class="panel-head"><h2>Choose an Event</h2></div>
+          <div class="toolbar">
+            <input type="text" id="bookSearch" placeholder="Search events…" class="toolbar-search" />
+            <select id="bookCategoryFilter">
+              <option value="">All categories</option>
+              <option>Summit</option>
+              <option>Concert</option>
+              <option>Hackathon</option>
+              <option>Networking</option>
+              <option>Gala</option>
+            </select>
+          </div>
+          <div class="event-grid select-grid" id="bookEventGrid"></div>
+        </div>
+
+        <form class="panel form-panel" id="bookingForm">
+          <div class="panel-head"><h2>Attendee &amp; Payment</h2></div>
+
+          <div class="selected-event" id="selectedEventBox">
+            <span class="muted">No event selected yet — pick one from the left.</span>
+          </div>
+
+          <label class="field">
+            <span>Full name</span>
+            <input type="text" id="b-name" placeholder="e.g. Kirill Morozov" required />
+          </label>
+
+          <label class="field">
+            <span>Email</span>
+            <input type="email" id="b-email" placeholder="you@example.com" required />
+          </label>
+
+          <label class="field">
+            <span>Number of tickets</span>
+            <input type="number" id="b-qty" min="1" value="1" required />
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span>Card number</span>
+              <input type="text" id="b-card" placeholder="4242 4242 4242 4242" maxlength="19" required />
+            </label>
+            <label class="field">
+              <span>Expiry</span>
+              <input type="text" id="b-exp" placeholder="MM/YY" maxlength="5" required />
+            </label>
+          </div>
+
+          <div class="total-row">
+            <span>Total</span>
+            <span class="total-amount" id="bookTotal">₹0</span>
+          </div>
+
+          <button class="btn btn-gold" type="submit">Pay &amp; Confirm Booking</button>
+          <p class="hint">Simulated payment gateway — no real card is charged.</p>
+        </form>
+      </div>
+    </section>
+
+    <!-- MY TICKETS -->
+    <section class="view" id="view-tickets">
+      <div class="view-head">
+        <h1>My Tickets</h1>
+        <p>Every booking generates a scannable QR ticket stub.</p>
+      </div>
+      <div class="ticket-wall" id="ticketWall">
+        <p class="empty-note">No tickets booked yet. Head to <strong>Book a Ticket</strong> to get one.</p>
+      </div>
+    </section>
+
+    <!-- QR CHECK-IN -->
+    <section class="view" id="view-checkin">
+      <div class="view-head">
+        <h1>QR Check-in</h1>
+        <p>Scan or enter a ticket code at the door to check an attendee in.</p>
+      </div>
+
+      <div class="split">
+        <div class="panel form-panel">
+          <div class="panel-head"><h2>Scan Ticket</h2></div>
+          <div class="scan-box" id="scanBox">
+            <span class="scan-ico">◫</span>
+            <span>Point a scanner here, or enter the code manually below</span>
+          </div>
+          <label class="field">
+            <span>Ticket code</span>
+            <input type="text" id="scanCode" placeholder="e.g. EL-1042" />
+          </label>
+          <button class="btn btn-gold" id="scanBtn">Check In</button>
+          <div class="scan-result" id="scanResult"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Recent Check-ins</h2>
+            <span class="panel-note" id="checkinCountNote">0 checked in</span>
+          </div>
+          <div class="checkin-list" id="checkinList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANALYTICS -->
+    <section class="view" id="view-analytics">
+      <div class="view-head">
+        <h1>Analytics</h1>
+        <p>Live numbers across every event on the roster.</p>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-label">Total Revenue</span>
+          <span class="stat-value" id="anRevenue">₹0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Tickets Sold</span>
+          <span class="stat-value" id="anTickets">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Check-in Rate</span>
+          <span class="stat-value" id="anRate">0%</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Avg. Ticket Price</span>
+          <span class="stat-value" id="anAvg">₹0</span>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="panel">
+          <div class="panel-head"><h2>Revenue by Event</h2></div>
+          <canvas id="chartRevenue" height="220"></canvas>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>Tickets Sold vs Checked-in</h2></div>
+          <canvas id="chartCheckin" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

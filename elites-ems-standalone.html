@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ELITES — Event Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --bg-deep:#0B0E14;
+  --bg-panel:#131826;
+  --bg-panel-2:#171D2E;
+  --line:#242C40;
+  --gold:#C9A227;
+  --gold-bright:#E8C466;
+  --text:#EDEEF0;
+  --text-muted:#8A93A6;
+  --teal:#3E7C7C;
+  --teal-bright:#5FB3B3;
+  --danger:#C24E4E;
+
+  --font-display:'Bebas Neue', sans-serif;
+  --font-body:'Inter', sans-serif;
+  --font-mono:'JetBrains Mono', monospace;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg-deep);
+  color:var(--text);
+  font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased;
+}
+button, input, select, textarea{font-family:inherit;}
+
+/* ===== layout ===== */
+.app{
+  display:grid;
+  grid-template-columns:220px 1fr;
+  min-height:100vh;
+}
+
+/* ===== rail nav ===== */
+.rail{
+  background:var(--bg-panel);
+  border-right:1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  padding:24px 16px;
+  position:sticky;
+  top:0;
+  height:100vh;
+}
+.rail-brand{display:flex;align-items:center;gap:10px;padding:0 4px 24px;border-bottom:1px solid var(--line);margin-bottom:20px;}
+.brand-mark{
+  width:36px;height:36px;border-radius:8px;
+  background:linear-gradient(145deg,var(--gold),#8f7418);
+  color:#0B0E14;font-family:var(--font-display);font-size:22px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.1;}
+.brand-name{font-family:var(--font-display);font-size:18px;letter-spacing:1px;}
+.brand-sub{font-size:9px;letter-spacing:2px;color:var(--text-muted);}
+
+.rail-nav{display:flex;flex-direction:column;gap:4px;flex:1;}
+.nav-btn{
+  display:flex;align-items:center;gap:10px;
+  background:none;border:none;color:var(--text-muted);
+  padding:11px 12px;border-radius:8px;font-size:13.5px;font-weight:500;
+  text-align:left;cursor:pointer;transition:.15s;
+}
+.nav-btn:hover{background:var(--bg-panel-2);color:var(--text);}
+.nav-btn.active{background:var(--bg-panel-2);color:var(--gold-bright);}
+.nav-ico{width:16px;text-align:center;font-size:13px;opacity:.9;}
+
+.rail-foot{padding-top:12px;border-top:1px solid var(--line);}
+.ticket-code{
+  font-family:var(--font-mono);font-size:10px;color:var(--text-muted);
+  letter-spacing:1px;
+}
+
+/* ===== stage ===== */
+.stage{padding:32px 40px 80px;max-width:1200px;}
+.view{display:none;}
+.view.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+.view-head{margin-bottom:24px;}
+.view-head h1{font-family:var(--font-display);font-size:36px;letter-spacing:1px;margin:0 0 4px;}
+.view-head p{color:var(--text-muted);margin:0;font-size:14px;}
+
+/* ===== hero ticket stub ===== */
+.hero{margin-bottom:28px;}
+.hero-stub{
+  display:grid;
+  grid-template-columns:1fr auto 200px;
+  background:linear-gradient(135deg,var(--bg-panel),var(--bg-panel-2));
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  position:relative;
+}
+.stub-main{padding:40px;}
+.eyebrow{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:2px;
+  color:var(--gold-bright);text-transform:uppercase;
+}
+.hero-title{
+  font-family:var(--font-display);
+  font-size:64px;line-height:.95;letter-spacing:1px;
+  margin:12px 0 14px;
+  color:var(--text);
+}
+.hero-copy{color:var(--text-muted);max-width:420px;font-size:14.5px;line-height:1.6;margin:0 0 22px;}
+.hero-actions{display:flex;gap:12px;}
+
+.stub-tear{
+  position:relative;
+  width:0;
+  border-left:2px dashed var(--line);
+}
+.stub-tear::before, .stub-tear::after{
+  content:"";
+  position:absolute;
+  left:-9px;
+  width:18px;height:18px;
+  background:var(--bg-deep);
+  border-radius:50%;
+}
+.stub-tear::before{top:-9px;}
+.stub-tear::after{bottom:-9px;}
+
+.stub-side{
+  background:var(--gold);
+  color:#1a1406;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  writing-mode:horizontal-tb;
+}
+.stub-label{font-family:var(--font-mono);font-size:11px;letter-spacing:3px;}
+.stub-big{font-family:var(--font-display);font-size:40px;letter-spacing:2px;}
+.stub-code{font-family:var(--font-mono);font-size:11px;margin-top:8px;opacity:.75;}
+
+/* ===== stat row ===== */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.stat-card{
+  background:var(--bg-panel);border:1px solid var(--line);border-radius:12px;
+  padding:18px 20px;display:flex;flex-direction:column;gap:6px;
+}
+.stat-label{font-size:11.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;}
+.stat-value{font-family:var(--font-display);font-size:30px;color:var(--gold-bright);letter-spacing:.5px;}
+
+/* ===== panels ===== */
+.panel{
+  background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;
+  padding:24px;margin-bottom:20px;
+}
+.panel-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;}
+.panel-head h2{font-family:var(--font-display);font-size:20px;letter-spacing:.5px;margin:0;font-weight:400;}
+.panel-note{font-size:12px;color:var(--text-muted);font-family:var(--font-mono);}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+
+/* ===== event cards ===== */
+.event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+.event-card{
+  background:var(--bg-panel-2);border:1px solid var(--line);border-radius:10px;
+  padding:16px;cursor:pointer;transition:.15s;position:relative;
+}
+.event-card:hover{border-color:var(--gold);transform:translateY(-2px);}
+.event-card.selected{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold);}
+.event-cat{
+  display:inline-block;font-family:var(--font-mono);font-size:10px;letter-spacing:1px;
+  color:var(--teal-bright);background:rgba(62,124,124,.15);padding:3px 8px;border-radius:20px;margin-bottom:10px;
+}
+.event-name{font-weight:700;font-size:15px;margin:0 0 6px;}
+.event-meta{font-size:12px;color:var(--text-muted);line-height:1.6;}
+.event-price{
+  margin-top:10px;font-family:var(--font-mono);font-size:13px;color:var(--gold-bright);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.seats-left{font-size:11px;color:var(--text-muted);}
+
+/* ===== forms ===== */
+.form-panel{position:sticky;top:24px;}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;font-size:12.5px;color:var(--text-muted);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+input, select, textarea{
+  background:var(--bg-deep);border:1px solid var(--line);border-radius:8px;
+  padding:10px 12px;color:var(--text);font-size:14px;outline:none;transition:.15s;
+}
+input:focus, select:focus, textarea:focus{border-color:var(--gold);}
+textarea{resize:vertical;}
+
+.btn{
+  border:none;border-radius:8px;padding:12px 20px;font-weight:700;font-size:13.5px;
+  cursor:pointer;transition:.15s;letter-spacing:.3px;
+}
+.btn-gold{background:linear-gradient(135deg,var(--gold-bright),var(--gold));color:#1a1406;width:100%;}
+.btn-gold:hover{filter:brightness(1.08);}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text);}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold-bright);}
+
+.hint{font-size:11px;color:var(--text-muted);text-align:center;margin-top:10px;}
+
+.selected-event{
+  background:var(--bg-deep);border:1px dashed var(--line);border-radius:8px;
+  padding:12px 14px;margin-bottom:16px;font-size:13px;
+}
+.selected-event .muted{color:var(--text-muted);}
+.total-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 0;border-top:1px solid var(--line);margin:6px 0 16px;
+  font-size:13px;color:var(--text-muted);
+}
+.total-amount{font-family:var(--font-display);font-size:24px;color:var(--gold-bright);}
+
+/* ===== ticket wall (real ticket stub cards) ===== */
+.ticket-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;}
+.empty-note{color:var(--text-muted);font-size:14px;}
+
+.ticket{
+  display:grid;grid-template-columns:1fr auto;
+  background:var(--bg-panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+}
+.ticket-body{padding:20px;}
+.ticket-eyebrow{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;}
+.ticket-event{font-family:var(--font-display);font-size:24px;margin:6px 0 10px;letter-spacing:.5px;}
+.ticket-meta{font-size:12px;color:var(--text-muted);line-height:1.7;}
+.ticket-attendee{margin-top:10px;font-size:13px;font-weight:600;}
+.ticket-booked-at{margin-top:6px;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);}
+.ticket-status{
+  display:inline-block;margin-top:10px;font-family:var(--font-mono);font-size:10px;
+  padding:3px 9px;border-radius:20px;letter-spacing:1px;
+}
+.status-valid{background:rgba(201,162,39,.15);color:var(--gold-bright);}
+.status-checked{background:rgba(95,179,179,.15);color:var(--teal-bright);}
+
+.ticket-stub-side{
+  background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:14px;gap:6px;border-left:2px dashed var(--line);position:relative;
+}
+.ticket-stub-side::before, .ticket-stub-side::after{
+  content:"";position:absolute;left:-9px;width:18px;height:18px;background:var(--bg-deep);border-radius:50%;
+}
+.ticket-stub-side::before{top:-9px;}
+.ticket-stub-side::after{bottom:-9px;}
+.qr-box{width:96px;height:96px;}
+.ticket-id{font-family:var(--font-mono);font-size:10px;color:#111;letter-spacing:1px;}
+
+/* ===== check-in ===== */
+.scan-box{
+  border:1.5px dashed var(--line);border-radius:10px;padding:28px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
+  color:var(--text-muted);font-size:12.5px;margin-bottom:16px;
+}
+.scan-ico{font-size:30px;color:var(--gold);}
+.scan-result{margin-top:14px;font-size:13px;}
+.scan-ok{color:var(--teal-bright);}
+.scan-fail{color:var(--danger);}
+
+.checkin-list{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto;}
+.checkin-row{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;
+  padding:10px 14px;font-size:13px;
+}
+.checkin-row .ci-name{font-weight:600;}
+.checkin-row .ci-meta{font-size:11px;color:var(--text-muted);font-family:var(--font-mono);}
+
+/* ===== toolbar (search/filter/sort) ===== */
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.toolbar-search{flex:1;min-width:160px;}
+.toolbar select{min-width:140px;}
+
+/* ===== countdown strip ===== */
+.countdown-strip{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  background:var(--bg-panel);border:1px solid var(--line);border-radius:12px;
+  padding:16px 22px;margin-bottom:20px;
+}
+.countdown-label{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--gold-bright);
+  text-transform:uppercase;
+}
+.countdown-name{font-weight:700;font-size:15px;flex:1;min-width:120px;}
+.countdown-clock{display:flex;gap:8px;}
+.clock-unit{
+  background:var(--bg-deep);border:1px solid var(--line);border-radius:8px;
+  padding:6px 10px;text-align:center;min-width:46px;
+}
+.clock-unit span{display:block;font-family:var(--font-display);font-size:20px;color:var(--gold-bright);letter-spacing:1px;}
+.clock-unit small{font-size:9px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;}
+
+/* ===== seat progress bar ===== */
+.seat-progress{
+  height:5px;border-radius:4px;background:var(--bg-deep);overflow:hidden;margin-top:8px;
+}
+.seat-progress-fill{height:100%;border-radius:4px;transition:width .3s ease;background:var(--teal-bright);}
+.seat-progress-fill.warn{background:var(--gold);}
+.seat-progress-fill.full{background:var(--danger);}
+.event-card-countdown{
+  font-family:var(--font-mono);font-size:10px;color:var(--gold-bright);margin-top:8px;
+  display:flex;align-items:center;gap:5px;
+}
+.badge-hot{
+  position:absolute;top:12px;right:12px;font-family:var(--font-mono);font-size:9px;
+  letter-spacing:1px;background:rgba(194,78,78,.18);color:#e78a8a;padding:3px 8px;border-radius:20px;
+}
+.badge-waitlist{
+  display:inline-block;margin-top:10px;font-family:var(--font-mono);font-size:10px;
+  background:rgba(194,78,78,.15);color:#e78a8a;padding:3px 9px;border-radius:20px;letter-spacing:1px;
+}
+
+/* ===== ticket download button ===== */
+.ticket-download{
+  margin-top:8px;background:none;border:1px solid #ddd;color:#333;
+  font-family:var(--font-mono);font-size:9px;letter-spacing:.5px;
+  padding:4px 8px;border-radius:20px;cursor:pointer;transition:.15s;
+}
+.ticket-download:hover{background:#f3f3f3;}
+
+/* ===== toasts ===== */
+.toast-stack{
+  position:fixed;top:20px;right:20px;z-index:999;
+  display:flex;flex-direction:column;gap:10px;pointer-events:none;
+}
+.toast{
+  background:var(--bg-panel);border:1px solid var(--line);border-left:3px solid var(--gold);
+  border-radius:8px;padding:12px 16px;font-size:13px;min-width:220px;max-width:320px;
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+  animation:toastIn .25s ease;
+}
+.toast.success{border-left-color:var(--teal-bright);}
+.toast.error{border-left-color:var(--danger);}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+.toast.hide{animation:toastOut .25s ease forwards;}
+@keyframes toastOut{to{opacity:0;transform:translateX(20px);}}
+
+/* ===== confetti canvas ===== */
+#confettiCanvas{
+  position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:998;
+}
+
+/* ===== scrollbar ===== */
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;}
+
+/* ===== responsive ===== */
+@media (max-width:980px){
+  .app{grid-template-columns:1fr;}
+  .rail{position:relative;height:auto;flex-direction:row;align-items:center;overflow-x:auto;}
+  .rail-brand{border:none;margin:0;padding:0 12px 0 0;}
+  .rail-nav{flex-direction:row;}
+  .rail-foot{display:none;}
+  .stage{padding:20px;}
+  .hero-stub{grid-template-columns:1fr;}
+  .stub-tear{display:none;}
+  .stub-side{flex-direction:row;padding:16px;justify-content:center;}
+  .split{grid-template-columns:1fr;}
+  .stat-row{grid-template-columns:repeat(2,1fr);}
+  .hero-title{font-size:44px;}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important;}
+}
+
+</style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+<div class="toast-stack" id="toastStack"></div>
+
+<div class="app">
+
+  <!-- ===== Side Rail Nav ===== -->
+  <aside class="rail">
+    <div class="rail-brand">
+      <div class="brand-mark">E</div>
+      <div class="brand-text">
+        <span class="brand-name">ELITES</span>
+        <span class="brand-sub">ORGANISATION</span>
+      </div>
+    </div>
+
+    <nav class="rail-nav">
+      <button class="nav-btn active" data-view="overview">
+        <span class="nav-ico">◈</span><span>Overview</span>
+      </button>
+      <button class="nav-btn" data-view="events">
+        <span class="nav-ico">▤</span><span>Events</span>
+      </button>
+      <button class="nav-btn" data-view="book">
+        <span class="nav-ico">✦</span><span>Book a Ticket</span>
+      </button>
+      <button class="nav-btn" data-view="tickets">
+        <span class="nav-ico">⌗</span><span>My Tickets</span>
+      </button>
+      <button class="nav-btn" data-view="checkin">
+        <span class="nav-ico">◫</span><span>QR Check-in</span>
+      </button>
+      <button class="nav-btn" data-view="analytics">
+        <span class="nav-ico">▲</span><span>Analytics</span>
+      </button>
+    </nav>
+
+    <div class="rail-foot">
+      <span class="ticket-code" id="sessionCode">SESSION · —</span>
+    </div>
+  </aside>
+
+  <!-- ===== Main Stage ===== -->
+  <main class="stage">
+
+    <!-- OVERVIEW -->
+    <section class="view active" id="view-overview">
+      <header class="hero">
+        <div class="hero-stub">
+          <div class="stub-main">
+            <span class="eyebrow">Backstage Pass · All Access</span>
+            <h1 class="hero-title">ELITES<br/>ORGANISATION</h1>
+            <p class="hero-copy">One platform to create events, sell tickets, scan attendees in at the door, and watch the numbers roll in — live.</p>
+            <div class="hero-actions">
+              <button class="btn btn-gold" data-goto="events">Create an Event</button>
+              <button class="btn btn-ghost" data-goto="book">Book a Ticket</button>
+            </div>
+          </div>
+          <div class="stub-tear"></div>
+          <div class="stub-side">
+            <span class="stub-label">ADMIT</span>
+            <span class="stub-big">ONE</span>
+            <span class="stub-code" id="heroCode">EL-0000</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="countdown-strip" id="countdownStrip">
+        <span class="countdown-label">Next Up</span>
+        <span class="countdown-name" id="countdownName">—</span>
+        <div class="countdown-clock" id="countdownClock">
+          <div class="clock-unit"><span id="cd-days">00</span><small>days</small></div>
+          <div class="clock-unit"><span id="cd-hours">00</span><small>hrs</small></div>
+          <div class="clock-unit"><span id="cd-mins">00</span><small>min</small></div>
+          <div class="clock-unit"><span id="cd-secs">00</span><small>sec</small></div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-label">Live Events</span>
+          <span class="stat-value" id="statEvents">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Tickets Sold</span>
+          <span class="stat-value" id="statTickets">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Revenue</span>
+          <span class="stat-value" id="statRevenue">₹0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Checked In</span>
+          <span class="stat-value" id="statCheckins">0</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Upcoming on the Roster</h2>
+          <span class="panel-note">Latest events created</span>
+        </div>
+        <div class="event-grid" id="overviewEventGrid"></div>
+      </div>
+    </section>
+
+    <!-- EVENTS / CREATE -->
+    <section class="view" id="view-events">
+      <div class="view-head">
+        <h1>Events</h1>
+        <p>Create a new event and manage everything already on the roster.</p>
+      </div>
+
+      <div class="split">
+        <form class="panel form-panel" id="eventForm">
+          <div class="panel-head"><h2>Create Event</h2></div>
+
+          <label class="field">
+            <span>Event name</span>
+            <input type="text" id="f-name" placeholder="e.g. Elite Summit 2026" required />
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span>Date</span>
+              <input type="date" id="f-date" required />
+            </label>
+            <label class="field">
+              <span>Start time</span>
+              <input type="time" id="f-time" required />
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Duration</span>
+            <select id="f-duration">
+              <option value="3">3 hours</option>
+              <option value="4">4 hours</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Venue</span>
+            <input type="text" id="f-venue" placeholder="e.g. Elite Grand Hall, Chennai" required />
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span>Category</span>
+              <select id="f-category">
+                <option>Summit</option>
+                <option>Concert</option>
+                <option>Hackathon</option>
+                <option>Networking</option>
+                <option>Gala</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Ticket price (₹)</span>
+              <input type="number" id="f-price" min="0" value="499" required />
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Total seats</span>
+            <input type="number" id="f-seats" min="1" value="100" required />
+          </label>
+
+          <label class="field">
+            <span>Description</span>
+            <textarea id="f-desc" rows="3" placeholder="What's this event about?"></textarea>
+          </label>
+
+          <button class="btn btn-gold" type="submit">Publish Event</button>
+        </form>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>All Events</h2>
+            <span class="panel-note" id="eventCountNote">0 events</span>
+          </div>
+          <div class="toolbar">
+            <input type="text" id="eventsSearch" placeholder="Search events…" class="toolbar-search" />
+            <select id="eventsCategoryFilter">
+              <option value="">All categories</option>
+              <option>Summit</option>
+              <option>Concert</option>
+              <option>Hackathon</option>
+              <option>Networking</option>
+              <option>Gala</option>
+            </select>
+            <select id="eventsSort">
+              <option value="date">Sort: Date</option>
+              <option value="price-asc">Sort: Price ↑</option>
+              <option value="price-desc">Sort: Price ↓</option>
+              <option value="popularity">Sort: Most Popular</option>
+            </select>
+          </div>
+          <div class="event-grid" id="eventsGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOOK TICKET -->
+    <section class="view" id="view-book">
+      <div class="view-head">
+        <h1>Book a Ticket</h1>
+        <p>Pick an event, enter attendee details, and check out.</p>
+      </div>
+
+      <div class="split">
+        <div class="panel">
+          <div class="panel-head"><h2>Choose an Event</h2></div>
+          <div class="toolbar">
+            <input type="text" id="bookSearch" placeholder="Search events…" class="toolbar-search" />
+            <select id="bookCategoryFilter">
+              <option value="">All categories</option>
+              <option>Summit</option>
+              <option>Concert</option>
+              <option>Hackathon</option>
+              <option>Networking</option>
+              <option>Gala</option>
+            </select>
+          </div>
+          <div class="event-grid select-grid" id="bookEventGrid"></div>
+        </div>
+
+        <form class="panel form-panel" id="bookingForm">
+          <div class="panel-head"><h2>Attendee &amp; Payment</h2></div>
+
+          <div class="selected-event" id="selectedEventBox">
+            <span class="muted">No event selected yet — pick one from the left.</span>
+          </div>
+
+          <label class="field">
+            <span>Full name</span>
+            <input type="text" id="b-name" placeholder="e.g. Kirill Morozov" required />
+          </label>
+
+          <label class="field">
+            <span>Email</span>
+            <input type="email" id="b-email" placeholder="you@example.com" required />
+          </label>
+
+          <label class="field">
+            <span>Number of tickets</span>
+            <input type="number" id="b-qty" min="1" value="1" required />
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span>Card number</span>
+              <input type="text" id="b-card" placeholder="4242 4242 4242 4242" maxlength="19" required />
+            </label>
+            <label class="field">
+              <span>Expiry</span>
+              <input type="text" id="b-exp" placeholder="MM/YY" maxlength="5" required />
+            </label>
+          </div>
+
+          <div class="total-row">
+            <span>Total</span>
+            <span class="total-amount" id="bookTotal">₹0</span>
+          </div>
+
+          <button class="btn btn-gold" type="submit">Pay &amp; Confirm Booking</button>
+          <p class="hint">Simulated payment gateway — no real card is charged.</p>
+        </form>
+      </div>
+    </section>
+
+    <!-- MY TICKETS -->
+    <section class="view" id="view-tickets">
+      <div class="view-head">
+        <h1>My Tickets</h1>
+        <p>Every booking generates a scannable QR ticket stub.</p>
+      </div>
+      <div class="ticket-wall" id="ticketWall">
+        <p class="empty-note">No tickets booked yet. Head to <strong>Book a Ticket</strong> to get one.</p>
+      </div>
+    </section>
+
+    <!-- QR CHECK-IN -->
+    <section class="view" id="view-checkin">
+      <div class="view-head">
+        <h1>QR Check-in</h1>
+        <p>Scan or enter a ticket code at the door to check an attendee in.</p>
+      </div>
+
+      <div class="split">
+        <div class="panel form-panel">
+          <div class="panel-head"><h2>Scan Ticket</h2></div>
+          <div class="scan-box" id="scanBox">
+            <span class="scan-ico">◫</span>
+            <span>Point a scanner here, or enter the code manually below</span>
+          </div>
+          <label class="field">
+            <span>Ticket code</span>
+            <input type="text" id="scanCode" placeholder="e.g. EL-1042" />
+          </label>
+          <button class="btn btn-gold" id="scanBtn">Check In</button>
+          <div class="scan-result" id="scanResult"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Recent Check-ins</h2>
+            <span class="panel-note" id="checkinCountNote">0 checked in</span>
+          </div>
+          <div class="checkin-list" id="checkinList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANALYTICS -->
+    <section class="view" id="view-analytics">
+      <div class="view-head">
+        <h1>Analytics</h1>
+        <p>Live numbers across every event on the roster.</p>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-label">Total Revenue</span>
+          <span class="stat-value" id="anRevenue">₹0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Tickets Sold</span>
+          <span class="stat-value" id="anTickets">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Check-in Rate</span>
+          <span class="stat-value" id="anRate">0%</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Avg. Ticket Price</span>
+          <span class="stat-value" id="anAvg">₹0</span>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="panel">
+          <div class="panel-head"><h2>Revenue by Event</h2></div>
+          <canvas id="chartRevenue" height="220"></canvas>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>Tickets Sold vs Checked-in</h2></div>
+          <canvas id="chartCheckin" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* ==========================================================
+   ELITES ORGANISATION — Event Management System (front-end demo)
+   All data lives in memory for this session (no backend/localStorage).
+   Swap the DB.* functions for real fetch() calls to your
+   Node/Express + MongoDB API to make this fully functional.
+========================================================== */
+
+const DB = {
+  events: [],
+  tickets: [],
+  checkins: [],
+  waitlist: [],
+  nextEventId: 1,
+  nextTicketId: 1001,
+};
+
+// Demo attendees used to seed sample bookings (kept separate from event names)
+const ATTENDEE_SEED = [
+  "Ananya Rao","Vikram Iyer","Priya Menon","Arjun Nair","Sneha Pillai",
+  "Rohan Das","Divya Krishnan","Karthik Subramaniam","Meera Bose","Aditya Varma"
+];
+
+function seedData(){
+  // The 10 event names, each branded as an Elites Organisation show
+  const seedEvents = [
+    { name:"Kirill Morozov", category:"Concert", date:"2026-08-14", time:"19:00", duration:3, venue:"Elite Grand Hall, Chennai", price:1499, seats:120, desc:"Live performance night headlined by Kirill Morozov." },
+    { name:"Landon King", category:"Summit", date:"2026-07-25", time:"10:00", duration:4, venue:"Elite Convention Centre, Chennai", price:999, seats:150, desc:"Keynote summit hosted by Landon King." },
+    { name:"Nikolai Sokolov", category:"Gala", date:"2026-09-02", time:"19:30", duration:4, venue:"Elite Ballroom, Chennai", price:2499, seats:80, desc:"An evening gala presented by Nikolai Sokolov." },
+    { name:"Brandon King", category:"Networking", date:"2026-07-18", time:"17:00", duration:3, venue:"Elite Rooftop, Chennai", price:499, seats:100, desc:"Networking mixer featuring Brandon King." },
+    { name:"Kyle", category:"Concert", date:"2026-08-30", time:"20:00", duration:3, venue:"Elite Arena, Chennai", price:1299, seats:200, desc:"A live show by Kyle." },
+    { name:"Rai Sokolov", category:"Hackathon", date:"2026-09-15", time:"09:00", duration:4, venue:"Elite Innovation Center", price:299, seats:150, desc:"Build sprint judged by Rai Sokolov." },
+    { name:"Mia Sokolov", category:"Summit", date:"2026-10-05", time:"11:00", duration:4, venue:"Elite Grand Hall, Chennai", price:1199, seats:130, desc:"Leadership summit led by Mia Sokolov." },
+    { name:"Dante Russo", category:"Concert", date:"2026-08-22", time:"19:00", duration:3, venue:"Elite Arena, Chennai", price:1599, seats:180, desc:"Live concert featuring Dante Russo." },
+    { name:"Josh Chen", category:"Networking", date:"2026-07-28", time:"18:00", duration:3, venue:"Elite Rooftop, Chennai", price:599, seats:90, desc:"Founders' networking evening with Josh Chen." },
+    { name:"Shashwat Singhania", category:"Gala", date:"2026-12-06", time:"19:30", duration:4, venue:"Elite Ballroom, Chennai", price:2999, seats:70, desc:"Annual gala hosted by Shashwat Singhania." },
+  ];
+  seedEvents.forEach(e => createEvent(e));
+
+  // seed a handful of bookings/tickets so the dashboard isn't empty
+  const bookings = [
+    [0, "Ananya Rao", "ananya@example.com", 2],
+    [0, "Vikram Iyer", "vikram@example.com", 1],
+    [1, "Priya Menon", "priya@example.com", 1],
+    [1, "Arjun Nair", "arjun@example.com", 3],
+    [2, "Sneha Pillai", "sneha@example.com", 1],
+    [3, "Rohan Das", "rohan@example.com", 2],
+    [4, "Divya Krishnan", "divya@example.com", 1],
+    [5, "Karthik Subramaniam", "karthik@example.com", 2],
+    [6, "Meera Bose", "meera@example.com", 1],
+    [7, "Aditya Varma", "aditya@example.com", 1],
+  ];
+  bookings.forEach(([idx, name, email, qty]) => {
+    const ev = DB.events[idx];
+    for(let i=0;i<qty;i++) bookTicket(ev.id, name, email);
+  });
+
+  // check a couple people in already, for a live-feeling demo
+  checkIn(DB.tickets[0].code);
+  checkIn(DB.tickets[2].code);
+}
+
+/* ---------------- data ops ---------------- */
+
+function createEvent(data){
+  const ev = {
+    id: DB.nextEventId++,
+    name: data.name,
+    category: data.category,
+    date: data.date,
+    time: data.time,
+    duration: Number(data.duration) || 3, // hours — event runs 3 or 4 hrs
+    venue: data.venue,
+    price: Number(data.price),
+    seats: Number(data.seats),
+    booked: 0,
+    desc: data.desc || "",
+  };
+  DB.events.push(ev);
+  return ev;
+}
+
+function bookTicket(eventId, name, email){
+  const ev = DB.events.find(e => e.id === eventId);
+  if(!ev || ev.booked >= ev.seats) return null;
+  const ticket = {
+    id: DB.nextTicketId,
+    code: "EL-" + DB.nextTicketId,
+    eventId: ev.id,
+    attendee: name,
+    email: email,
+    price: ev.price,
+    status: "valid", // valid | checked-in
+    issuedAt: new Date().toISOString(),
+  };
+  DB.nextTicketId++;
+  DB.tickets.push(ticket);
+  ev.booked++;
+  return ticket;
+}
+
+function joinWaitlist(eventId, name, email){
+  DB.waitlist.push({ eventId, name, email, joinedAt: new Date() });
+}
+
+function checkIn(code){
+  const t = DB.tickets.find(t => t.code.toLowerCase() === code.trim().toLowerCase());
+  if(!t) return { ok:false, reason:"No ticket found with that code." };
+  if(t.status === "checked-in") return { ok:false, reason:"This ticket was already checked in.", ticket:t };
+  t.status = "checked-in";
+  DB.checkins.push({ ticketCode:t.code, attendee:t.attendee, time:new Date() });
+  return { ok:true, ticket:t };
+}
+
+/* ---------------- rendering helpers ---------------- */
+
+function fmtMoney(n){ return "₹" + Number(n).toLocaleString("en-IN"); }
+function fmtDate(d,t){
+  const dt = new Date(d + "T" + (t||"00:00"));
+  return dt.toLocaleDateString("en-IN",{ day:"2-digit", month:"short", year:"numeric" }) + " · " + (t||"");
+}
+function fmtTime12(dateObj){
+  return dateObj.toLocaleTimeString("en-IN",{ hour:"2-digit", minute:"2-digit", hour12:true });
+}
+function fmtTimeRange(d, t, durationHrs){
+  const start = new Date(d + "T" + t);
+  const end = new Date(start.getTime() + durationHrs*3600000);
+  return `${fmtTime12(start)} – ${fmtTime12(end)} (${durationHrs} hrs)`;
+}
+function fmtEventDateTime(ev){
+  const start = new Date(ev.date + "T" + ev.time);
+  return start.toLocaleDateString("en-IN",{ day:"2-digit", month:"short", year:"numeric" }) +
+    " · " + fmtTimeRange(ev.date, ev.time, ev.duration);
+}
+function fmtBookedAt(iso){
+  const dt = new Date(iso);
+  return dt.toLocaleDateString("en-IN",{ day:"2-digit", month:"short", year:"numeric" }) +
+    " · " + fmtTime12(dt);
+}
+
+function eventCardHTML(ev, opts={}){
+  const left = ev.seats - ev.booked;
+  const pct = Math.min(100, Math.round((ev.booked/ev.seats)*100));
+  const soldOut = left <= 0;
+  const almostGone = !soldOut && (left / ev.seats) <= 0.15;
+  const fillClass = soldOut ? "full" : almostGone ? "warn" : "";
+  const isHot = pct >= 70 && !soldOut;
+
+  return `
+    <div class="event-card" data-event-id="${ev.id}" data-event-date="${ev.date}T${ev.time}" ${opts.selectable ? 'data-selectable="1"' : ''}>
+      ${isHot ? `<span class="badge-hot">🔥 Selling Fast</span>` : ""}
+      <span class="event-cat">${ev.category}</span>
+      <p class="event-name">${ev.name}</p>
+      <div class="event-meta">
+        ${fmtEventDateTime(ev)}<br/>
+        ${ev.venue}
+      </div>
+      <div class="event-price">
+        <span>${fmtMoney(ev.price)} / ticket</span>
+        <span class="seats-left">${soldOut ? "Sold Out" : left + " left"}</span>
+      </div>
+      <div class="seat-progress"><div class="seat-progress-fill ${fillClass}" style="width:${pct}%"></div></div>
+      <div class="event-card-countdown" data-countdown="${ev.date}T${ev.time}">⏳ <span>—</span></div>
+      ${soldOut ? `<span class="badge-waitlist">Join waitlist to be notified</span>` : ""}
+    </div>`;
+}
+
+function ticketHTML(t){
+  const ev = DB.events.find(e => e.id === t.eventId);
+  const statusClass = t.status === "checked-in" ? "status-checked" : "status-valid";
+  const statusLabel = t.status === "checked-in" ? "Checked In" : "Valid";
+  return `
+    <div class="ticket">
+      <div class="ticket-body">
+        <span class="ticket-eyebrow">Elites Organisation</span>
+        <p class="ticket-event">${ev ? ev.name : "Unknown Event"}</p>
+        <div class="ticket-meta">
+          ${ev ? fmtEventDateTime(ev) : ""}<br/>
+          ${ev ? ev.venue : ""}
+        </div>
+        <p class="ticket-attendee">${t.attendee}</p>
+        <span class="ticket-status ${statusClass}">${statusLabel}</span>
+        <div class="ticket-booked-at">Booked on ${fmtBookedAt(t.issuedAt)}</div>
+      </div>
+      <div class="ticket-stub-side">
+        <div class="qr-box" id="qr-${t.code}"></div>
+        <span class="ticket-id">${t.code}</span>
+        <button class="ticket-download" data-download="${t.code}">⬇ Save PNG</button>
+      </div>
+    </div>`;
+}
+
+function renderQR(container, text){
+  container.innerHTML = "";
+  // eslint-disable-next-line no-undef
+  new QRCode(container, { text, width:96, height:96, colorDark:"#111", colorLight:"#ffffff" });
+}
+
+/* ---------------- toasts ---------------- */
+
+function toast(message, type="info"){
+  const stack = document.getElementById("toastStack");
+  const el = document.createElement("div");
+  el.className = "toast " + type;
+  el.textContent = message;
+  stack.appendChild(el);
+  setTimeout(() => {
+    el.classList.add("hide");
+    setTimeout(() => el.remove(), 250);
+  }, 3200);
+}
+
+/* ---------------- confetti burst ---------------- */
+
+function fireConfetti(){
+  const canvas = document.getElementById("confettiCanvas");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext("2d");
+  const colors = ["#C9A227","#E8C466","#3E7C7C","#5FB3B3","#EDEEF0"];
+  const pieces = Array.from({length:120}, () => ({
+    x: canvas.width/2 + (Math.random()-0.5)*200,
+    y: canvas.height*0.35,
+    vx: (Math.random()-0.5)*10,
+    vy: Math.random()*-8 - 4,
+    size: Math.random()*6+4,
+    color: colors[Math.floor(Math.random()*colors.length)],
+    rot: Math.random()*360,
+    vr: (Math.random()-0.5)*10,
+  }));
+  let frame = 0;
+  function tick(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    frame++;
+    pieces.forEach(p => {
+      p.vy += 0.28; // gravity
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI/180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+      ctx.restore();
+    });
+    if(frame < 110) requestAnimationFrame(tick);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  tick();
+}
+
+/* ---------------- live countdowns ---------------- */
+
+function countdownParts(targetISO){
+  const diff = new Date(targetISO) - new Date();
+  if(diff <= 0) return null;
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  const secs = Math.floor((diff % 60000) / 1000);
+  return { days, hours, mins, secs };
+}
+
+function tickCountdowns(){
+  // hero strip: next upcoming event
+  const upcoming = DB.events
+    .filter(ev => new Date(ev.date + "T" + ev.time) > new Date())
+    .sort((a,b) => new Date(a.date+"T"+a.time) - new Date(b.date+"T"+b.time))[0];
+
+  if(upcoming){
+    document.getElementById("countdownName").textContent = upcoming.name;
+    const p = countdownParts(upcoming.date + "T" + upcoming.time);
+    if(p){
+      document.getElementById("cd-days").textContent = String(p.days).padStart(2,"0");
+      document.getElementById("cd-hours").textContent = String(p.hours).padStart(2,"0");
+      document.getElementById("cd-mins").textContent = String(p.mins).padStart(2,"0");
+      document.getElementById("cd-secs").textContent = String(p.secs).padStart(2,"0");
+    }
+  } else {
+    document.getElementById("countdownName").textContent = "No upcoming events";
+  }
+
+  // small countdown chip on each visible event card
+  document.querySelectorAll("[data-countdown]").forEach(el => {
+    const p = countdownParts(el.dataset.countdown);
+    const span = el.querySelector("span");
+    if(!p){ span.textContent = "Happening now / past"; return; }
+    span.textContent = p.days > 0 ? `${p.days}d ${p.hours}h left` : `${p.hours}h ${p.mins}m left`;
+  });
+}
+
+/* ---------------- count-up animation ---------------- */
+
+function countUp(el, to, opts={}){
+  const prefix = opts.prefix || "";
+  const isPercent = !!opts.percent;
+  const from = 0;
+  const duration = 700;
+  const start = performance.now();
+  function frame(now){
+    const t = Math.min(1, (now-start)/duration);
+    const eased = 1 - Math.pow(1-t, 3);
+    const val = Math.round(from + (to-from)*eased);
+    el.textContent = prefix + val.toLocaleString("en-IN") + (isPercent ? "%" : "");
+    if(t < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------------- view renderers ---------------- */
+
+function renderOverview(){
+  countUp(document.getElementById("statEvents"), DB.events.length);
+  countUp(document.getElementById("statTickets"), DB.tickets.length);
+  countUp(document.getElementById("statRevenue"), DB.tickets.reduce((s,t)=>s+t.price,0), {prefix:"₹"});
+  countUp(document.getElementById("statCheckins"), DB.tickets.filter(t=>t.status==="checked-in").length);
+
+  const grid = document.getElementById("overviewEventGrid");
+  grid.innerHTML = DB.events.slice(0,4).map(ev => eventCardHTML(ev)).join("") ||
+    `<p class="empty-note">No events yet.</p>`;
+
+  const latest = DB.tickets[DB.tickets.length-1];
+  document.getElementById("heroCode").textContent = latest ? latest.code : "EL-0000";
+}
+
+function filterAndSortEvents(list, searchVal, categoryVal, sortVal){
+  let out = list.filter(ev => {
+    const matchesSearch = !searchVal || ev.name.toLowerCase().includes(searchVal.toLowerCase());
+    const matchesCategory = !categoryVal || ev.category === categoryVal;
+    return matchesSearch && matchesCategory;
+  });
+  if(sortVal === "price-asc") out = out.slice().sort((a,b)=>a.price-b.price);
+  else if(sortVal === "price-desc") out = out.slice().sort((a,b)=>b.price-a.price);
+  else if(sortVal === "popularity") out = out.slice().sort((a,b)=>(b.booked/b.seats)-(a.booked/a.seats));
+  else out = out.slice().sort((a,b)=> new Date(a.date+"T"+a.time) - new Date(b.date+"T"+b.time));
+  return out;
+}
+
+function renderEvents(){
+  const grid = document.getElementById("eventsGrid");
+  const searchVal = document.getElementById("eventsSearch")?.value || "";
+  const categoryVal = document.getElementById("eventsCategoryFilter")?.value || "";
+  const sortVal = document.getElementById("eventsSort")?.value || "date";
+  const list = filterAndSortEvents(DB.events, searchVal, categoryVal, sortVal);
+  grid.innerHTML = list.map(ev => eventCardHTML(ev)).join("") ||
+    `<p class="empty-note">No events match your search.</p>`;
+  document.getElementById("eventCountNote").textContent = list.length + " of " + DB.events.length + " events";
+  tickCountdowns();
+}
+
+let selectedEventId = null;
+
+function renderBookEvents(){
+  const grid = document.getElementById("bookEventGrid");
+  const searchVal = document.getElementById("bookSearch")?.value || "";
+  const categoryVal = document.getElementById("bookCategoryFilter")?.value || "";
+  const list = filterAndSortEvents(DB.events, searchVal, categoryVal, "date");
+  grid.innerHTML = list.map(ev => eventCardHTML(ev, {selectable:true})).join("") ||
+    `<p class="empty-note">No events match your search.</p>`;
+  [...grid.querySelectorAll(".event-card")].forEach(card => {
+    const evId = Number(card.dataset.eventId);
+    const ev = DB.events.find(e => e.id === evId);
+    card.classList.toggle("selected", evId === selectedEventId);
+    card.addEventListener("click", () => {
+      if(ev.booked >= ev.seats){
+        toast(`"${ev.name}" is sold out. Enter your details and click "Join Waitlist" below.`, "error");
+      }
+      selectedEventId = evId;
+      renderBookEvents();
+      updateSelectedEventBox();
+    });
+  });
+  tickCountdowns();
+}
+
+function updateSelectedEventBox(){
+  const box = document.getElementById("selectedEventBox");
+  const ev = DB.events.find(e => e.id === selectedEventId);
+  const submitBtn = document.querySelector("#bookingForm button[type=submit]");
+  if(!ev){
+    box.innerHTML = `<span class="muted">No event selected yet — pick one from the left.</span>`;
+    if(submitBtn) submitBtn.textContent = "Pay & Confirm Booking";
+  } else {
+    const soldOut = ev.booked >= ev.seats;
+    box.innerHTML = `<strong>${ev.name}</strong><br/><span class="muted">${fmtEventDateTime(ev)} · ${fmtMoney(ev.price)}/ticket</span>` +
+      (soldOut ? `<br/><span class="badge-waitlist">Sold out — you'll join the waitlist</span>` : "");
+    if(submitBtn) submitBtn.textContent = soldOut ? "Join Waitlist" : "Pay & Confirm Booking";
+  }
+  updateBookTotal();
+}
+
+function updateBookTotal(){
+  const ev = DB.events.find(e => e.id === selectedEventId);
+  const qty = Number(document.getElementById("b-qty").value || 1);
+  const total = ev ? ev.price * qty : 0;
+  document.getElementById("bookTotal").textContent = fmtMoney(total);
+}
+
+function renderTickets(){
+  const wall = document.getElementById("ticketWall");
+  if(DB.tickets.length === 0){
+    wall.innerHTML = `<p class="empty-note">No tickets booked yet. Head to <strong>Book a Ticket</strong> to get one.</p>`;
+    return;
+  }
+  wall.innerHTML = DB.tickets.slice().reverse().map(ticketHTML).join("");
+  DB.tickets.forEach(t => {
+    const box = document.getElementById("qr-" + t.code);
+    if(box) renderQR(box, t.code);
+  });
+}
+
+function renderCheckinList(){
+  const list = document.getElementById("checkinList");
+  document.getElementById("checkinCountNote").textContent = DB.checkins.length + " checked in";
+  if(DB.checkins.length === 0){
+    list.innerHTML = `<p class="empty-note">No check-ins yet.</p>`;
+    return;
+  }
+  list.innerHTML = DB.checkins.slice().reverse().map(c => `
+    <div class="checkin-row">
+      <span class="ci-name">${c.attendee}</span>
+      <span class="ci-meta">${c.ticketCode} · ${c.time.toLocaleTimeString("en-IN",{hour:'2-digit',minute:'2-digit'})}</span>
+    </div>
+  `).join("");
+}
+
+let chartRevenue, chartCheckin;
+
+function renderAnalytics(){
+  const totalRevenue = DB.tickets.reduce((s,t)=>s+t.price,0);
+  const totalTickets = DB.tickets.length;
+  const checkedIn = DB.tickets.filter(t=>t.status==="checked-in").length;
+  const rate = totalTickets ? Math.round((checkedIn/totalTickets)*100) : 0;
+  const avg = totalTickets ? Math.round(totalRevenue/totalTickets) : 0;
+
+  countUp(document.getElementById("anRevenue"), totalRevenue, {prefix:"₹"});
+  countUp(document.getElementById("anTickets"), totalTickets);
+  countUp(document.getElementById("anRate"), rate, {percent:true});
+  countUp(document.getElementById("anAvg"), avg, {prefix:"₹"});
+
+  const labels = DB.events.map(e => e.name);
+  const revenueData = DB.events.map(ev =>
+    DB.tickets.filter(t=>t.eventId===ev.id).reduce((s,t)=>s+t.price,0)
+  );
+  const soldData = DB.events.map(ev => DB.tickets.filter(t=>t.eventId===ev.id).length);
+  const checkedData = DB.events.map(ev => DB.tickets.filter(t=>t.eventId===ev.id && t.status==="checked-in").length);
+
+  const gold = "#C9A227", teal = "#3E7C7C", grid = "#242C40", textMuted = "#8A93A6";
+
+  if(chartRevenue) chartRevenue.destroy();
+  chartRevenue = new Chart(document.getElementById("chartRevenue"), {
+    type:"bar",
+    data:{ labels, datasets:[{ label:"Revenue (₹)", data:revenueData, backgroundColor:gold, borderRadius:6 }] },
+    options:{
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ ticks:{ color:textMuted, font:{size:10} }, grid:{ display:false } },
+        y:{ ticks:{ color:textMuted }, grid:{ color:grid } }
+      }
+    }
+  });
+
+  if(chartCheckin) chartCheckin.destroy();
+  chartCheckin = new Chart(document.getElementById("chartCheckin"), {
+    type:"bar",
+    data:{
+      labels,
+      datasets:[
+        { label:"Sold", data:soldData, backgroundColor: grid, borderRadius:6 },
+        { label:"Checked-in", data:checkedData, backgroundColor: teal, borderRadius:6 },
+      ]
+    },
+    options:{
+      plugins:{ legend:{ labels:{ color:textMuted } } },
+      scales:{
+        x:{ ticks:{ color:textMuted, font:{size:10} }, grid:{ display:false } },
+        y:{ ticks:{ color:textMuted }, grid:{ color:grid } }
+      }
+    }
+  });
+}
+
+function renderAll(){
+  renderOverview();
+  renderEvents();
+  renderBookEvents();
+  updateSelectedEventBox();
+  renderTickets();
+  renderCheckinList();
+  renderAnalytics();
+}
+
+/* ---------------- navigation ---------------- */
+
+function goToView(view){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-" + view).classList.add("active");
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+  if(view === "analytics") renderAnalytics();
+}
+
+document.querySelectorAll(".nav-btn").forEach(btn => {
+  btn.addEventListener("click", () => goToView(btn.dataset.view));
+});
+document.querySelectorAll("[data-goto]").forEach(btn => {
+  btn.addEventListener("click", () => goToView(btn.dataset.goto));
+});
+
+/* ---------------- form handlers ---------------- */
+
+document.getElementById("eventForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  createEvent({
+    name: document.getElementById("f-name").value,
+    date: document.getElementById("f-date").value,
+    time: document.getElementById("f-time").value,
+    duration: document.getElementById("f-duration").value,
+    venue: document.getElementById("f-venue").value,
+    category: document.getElementById("f-category").value,
+    price: document.getElementById("f-price").value,
+    seats: document.getElementById("f-seats").value,
+    desc: document.getElementById("f-desc").value,
+  });
+  e.target.reset();
+  document.getElementById("f-seats").value = 100;
+  document.getElementById("f-price").value = 499;
+  renderAll();
+});
+
+document.getElementById("b-qty").addEventListener("input", updateBookTotal);
+
+document.getElementById("bookingForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  if(!selectedEventId){
+    toast("Pick an event first.", "error");
+    return;
+  }
+  const ev = DB.events.find(ev => ev.id === selectedEventId);
+  const name = document.getElementById("b-name").value;
+  const email = document.getElementById("b-email").value;
+  const qty = Number(document.getElementById("b-qty").value);
+
+  if(ev.booked >= ev.seats){
+    joinWaitlist(selectedEventId, name, email);
+    toast(`You're on the waitlist for "${ev.name}" — we'll email you if a seat frees up.`, "info");
+    e.target.reset();
+    document.getElementById("b-qty").value = 1;
+    selectedEventId = null;
+    renderAll();
+    return;
+  }
+
+  for(let i=0;i<qty;i++) bookTicket(selectedEventId, name, email);
+
+  toast(`Booked ${qty} ticket${qty>1?"s":""} for "${ev.name}"! 🎉`, "success");
+  fireConfetti();
+
+  e.target.reset();
+  document.getElementById("b-qty").value = 1;
+  selectedEventId = null;
+  renderAll();
+  goToView("tickets");
+});
+
+document.getElementById("scanBtn").addEventListener("click", () => {
+  const code = document.getElementById("scanCode").value;
+  const result = document.getElementById("scanResult");
+  if(!code.trim()){ result.innerHTML = `<span class="scan-fail">Enter a ticket code first.</span>`; return; }
+  const res = checkIn(code);
+  if(res.ok){
+    result.innerHTML = `<span class="scan-ok">✔ ${res.ticket.attendee} checked in — ${res.ticket.code}</span>`;
+    toast(`${res.ticket.attendee} checked in ✔`, "success");
+  } else {
+    result.innerHTML = `<span class="scan-fail">✕ ${res.reason}</span>`;
+    toast(res.reason, "error");
+  }
+  document.getElementById("scanCode").value = "";
+  renderAll();
+});
+
+/* ---------------- search / filter / sort listeners ---------------- */
+
+["eventsSearch","eventsCategoryFilter","eventsSort"].forEach(id => {
+  document.getElementById(id).addEventListener("input", renderEvents);
+  document.getElementById(id).addEventListener("change", renderEvents);
+});
+["bookSearch","bookCategoryFilter"].forEach(id => {
+  document.getElementById(id).addEventListener("input", renderBookEvents);
+  document.getElementById(id).addEventListener("change", renderBookEvents);
+});
+
+/* ---------------- ticket download (PNG) ---------------- */
+
+document.getElementById("ticketWall").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-download]");
+  if(!btn) return;
+  const code = btn.dataset.download;
+  const ticketEl = btn.closest(".ticket");
+  btn.textContent = "Rendering…";
+  html2canvas(ticketEl, { backgroundColor: "#131826", scale: 2 }).then(canvas => {
+    const link = document.createElement("a");
+    link.download = `${code}-ticket.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    btn.textContent = "⬇ Save PNG";
+    toast(`Ticket ${code} saved as image`, "success");
+  }).catch(() => {
+    btn.textContent = "⬇ Save PNG";
+    toast("Couldn't render ticket image — try again.", "error");
+  });
+});
+
+/* ---------------- init ---------------- */
+
+seedData();
+renderAll();
+document.getElementById("sessionCode").textContent = "SESSION · EL-" + Math.floor(1000+Math.random()*8999);
+
+tickCountdowns();
+setInterval(tickCountdowns, 1000);
+
+</script>
+</body>
+</html>
